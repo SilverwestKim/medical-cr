@@ -1,0 +1,112 @@
+rm(list=ls())
+
+getwd()
+
+setwd("C:/Users/eunse/Desktop/crawling/KCDC")
+if(!require(dplyr)) install.packages("dplyr"); library(dplyr)
+if(!require(rvest)) install.packages("rvest"); library(rvest)
+if(!require(stringr)) install.packages("stringr"); library(stringr)
+
+#의료감염 url
+url = "http://www.cdc.go.kr/CDC/notice/CdcKrIntro0201.jsp?menuIds=HOME006-MNU2804-MNU2937&pageNum=&q_type=writer&q_value=%EC%9D%98%EB%A3%8C+%EA%B0%90%EC%97%BC"
+
+x = read_html(url)
+title = x%>%html_nodes('.con')%>%html_node('a')%>%html_attr('title')
+source = x%>%html_nodes('.con2')%>%html_text
+i = seq(3,27,3)
+date = source[i]
+sublin = x%>%html_nodes('.con')%>%html_node('a')%>%html_attr('href')
+sub = "http://cdc.go.kr"
+sublink = paste0(sub, sublin)
+sublink = sublink[1:9]
+title = title[1:9]
+
+
+k = read_html(sublink[1])
+t = k%>%html_nodes('.boardVieweArea')
+
+text= c()
+
+data = data.frame(title,date,text)
+write.csv(data,'KCDC.csv')
+
+
+url = "http://www.cdc.go.kr/search/sEngine_new.jsp?termType=&startDate=20140101&endDate=20180831&kwd=%EB%B3%91%EC%9B%90%EA%B0%90%EC%97%BC&category=TOTAL&reSrchFlag=false&pageSize=10&detailSearch=false&srchFd=TOTAL&sort=r&date=TOTAL&startDate=&endDate=&fileExt=TOTAL&writer=&year=TOTAL&site=CDC&preKwd=%EB%B3%91%EC%9B%90%EA%B0%90%EC%97%BC&pageNum="
+
+i = 1:164
+ur = paste0(url,i)
+url = ur
+result = data.frame(0,0,0)
+colnames(result)=c('title','date','text')
+for (p in 1:length(url)){
+  kk = read_html(url[p])
+  title = kk%>%html_nodes('.searchResultCont')%>%html_nodes('.srList')%>%html_nodes('.srTit')%>%html_node('a')%>%html_attr('title')
+  sublin = kk%>%html_nodes('.searchResultCont')%>%html_nodes('.srList')%>%html_nodes('.srTit')%>%html_node('a')%>%html_attr('href')
+  sub = "http://cdc.go.kr"
+  sublink = paste0(sub,sublin)
+  date = kk%>%html_nodes('.searchResultCont')%>%html_nodes('.srList')%>%html_nodes('.srTit')%>%html_node('.srDate')%>%html_text
+  
+  i1 = grep('공모',title)
+  i2 = grep('인체감염',title)
+  i3 = grep('해명',title)
+  i4 = grep('고양이',title)
+  i5 = grep('내성',title)
+  i6 = grep('메르스',title)
+  i7 = grep('중증도',title)
+  i8 = grep('결핵',title)
+  
+  idx = c(i1, i2,i3,i4,i5,i6,i7,i8)
+  title = title[-idx]
+  date = date[-idx]
+  sublink=sublink[-idx]
+  
+  text = c()
+  for (j in 1:length(sublink)){
+    x = read_html(sublink[j])
+    text[j] = x%>%html_nodes('.boardViewArea')%>%html_text
+  }
+  df = data.frame(title, date, text)
+  result = rbind(result, df)
+}
+text = c()
+for (j in 1:length(sublin)){
+  x = read_html(sublin[j])
+  text[j] = x%>%html_nodes('.boardViewArea')%>%html_text
+}
+
+
+kk = read_html(url[2])
+title = kk%>%html_nodes('.searchResultCont')%>%html_nodes('.srList')%>%html_nodes('.srTit')%>%html_node('a')%>%html_attr('title')
+sublin = kk%>%html_nodes('.searchResultCont')%>%html_nodes('.srList')%>%html_nodes('.srTit')%>%html_node('a')%>%html_attr('href')
+sub = "http://cdc.go.kr"
+sublink = paste0(sub,sublin)
+date = kk%>%html_nodes('.searchResultCont')%>%html_nodes('.srList')%>%html_nodes('.srTit')%>%html_node('.srDate')%>%html_text
+
+i1 = grep('공모',title)
+i2 = grep('인체감염',title)
+i3 = grep('해명',title)
+i4 = grep('고양이',title)
+i5 = grep('내성',title)
+i6 = grep('메르스',title)
+i7 = grep('중증도',title)
+i8 = grep('결핵',title)
+
+idx = c(i1, i2,i3,i4,i5,i6,i7,i8)
+title = title[-idx]
+date = date[-idx]
+sublink=sublink[-idx]
+
+text = c()
+for (j in 1:length(sublink)){
+  x = read_html(sublink[9])
+  text[j] = x%>%html_nodes('.boardViewArea')%>%html_text
+}
+df = data.frame(title, date, text)
+result = rbind(result, df)
+
+x = read_html('http://www.cdc.go.kr/CDC/notice/CdcKrIntro0301.jsp?menuIds=HOME006-MNU2804-MNU2940&cid=130949',encoding = 'euc-kr')
+text[j] = x%>%html_nodes('.boardViewArea')
+%>%html_text
+x%>%html_nodes('.boardViewArea')
+x = readLines(sublink[3],encoding = 'EUC-KR')
+index = which(str_detect(x, "<div class=")==TRUE)
